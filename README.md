@@ -6,16 +6,27 @@ Mục đích: để đơn vị nghiệp vụ **bấm thử luồng xử lý và 
 
 ## Cách chạy
 
-**Cách 1 — không cần cài gì (khuyến nghị cho nghiệp vụ):**
-mở file `index.html` bằng trình duyệt (double-click, hoặc chuột phải → Open with → Chrome/Edge).
-
-**Cách 2 — qua máy chủ tĩnh (nếu trình duyệt chặn file cục bộ):**
+> **Không có bước build.** Không cần `npm install`, không có `package.json`, không phụ thuộc thư viện hay CDN nào. Clone về là chạy được ngay.
 
 ```bash
-node prototype/serve.js
+git clone https://github.com/MinhPQ258/testKSSV.git
+cd testKSSV
 ```
 
-rồi mở http://localhost:5321
+**Cách 1 — mở thẳng bằng trình duyệt (nhanh nhất):**
+double-click `index.html`, hoặc chuột phải → Open with → Chrome/Edge.
+
+> Lưu ý: khi mở bằng `file://`, một số trình duyệt (Chrome) chặn `localStorage` với file cục bộ. Giao diện và luồng vẫn chạy bình thường, nhưng **dữ liệu không lưu được qua lần tải lại trang** — mỗi lần F5 là về dữ liệu mẫu ban đầu. Muốn giữ trạng thái giữa các phiên thì dùng Cách 2.
+
+**Cách 2 — qua máy chủ tĩnh (khuyến nghị, cần Node):**
+
+```bash
+node serve.js
+```
+
+rồi mở http://localhost:5321 — đây là cách đã được kiểm chứng, `localStorage` hoạt động đầy đủ.
+
+`serve.js` chỉ dùng module có sẵn của Node (`http`, `fs`, `path`), không cài thêm gì.
 
 ---
 
@@ -101,7 +112,7 @@ Toàn bộ nằm trong `js/domain.js` — sửa file đó là sửa hành vi ngh
 ## Cấu trúc mã nguồn
 
 ```
-prototype/
+testKSSV/
 ├── index.html          vỏ trang
 ├── serve.js            máy chủ tĩnh tùy chọn (node serve.js)
 ├── css/style.css       toàn bộ giao diện
@@ -112,6 +123,8 @@ prototype/
     ├── screens.js      M-01, M-02, M-03
     └── app.js          vỏ, đăng nhập, thanh công cụ, điều hướng
 ```
+
+Muốn sửa hành vi nghiệp vụ (thêm bước, đổi điều kiện hiện nút, đổi quy tắc tính hạn) thì sửa `js/domain.js` — không cần đụng vào các file khác.
 
 `domain.js` chính là **ma trận hiển thị 4 chiều** (vai trò × bước × luồng PD × cờ rủi ro) ở dạng chạy được — dùng làm đầu vào cho FSD thay vì phải viết tay một bảng riêng.
 
