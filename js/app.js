@@ -115,31 +115,31 @@ function veSidebar() {
     .filter(hs => hs.buocHienTai !== 'ST-99' && laNguoiPhuTrach(hs, u)).length;
 
   const mucMenu = it => {
-    const dangChon = !s.hoSoDangMo && (s.manHinh === it.ma);
+    /* M-02 là màn hình ngữ cảnh: đang chọn khi có hồ sơ mở, và hiển thị mã
+     * hồ sơ đang xử lý ngay dưới tên menu.                                 */
+    const laXuLy = it.ma === 'M-02';
+    const dangChon = laXuLy
+      ? (!!s.hoSoDangMo || s.manHinh === 'M-02')
+      : (!s.hoSoDangMo && s.manHinh === it.ma);
+
     return el('button', {
       class: 'mi' + (dangChon ? ' on' : '') + (it.daDung ? '' : ' chuaDung'),
       title: it.daDung ? '' : (it.moTa || '') + ' — thuộc giai đoạn mở rộng, chưa dựng trong bản mô phỏng',
       onclick: () => {
-        s.manHinh = it.ma; s.hoSoDangMo = null; s.trang = 1; Store.luu(); ve();
+        s.manHinh = it.ma;
+        /* Giữ nguyên hồ sơ đang mở khi bấm chính mục Xử lý hồ sơ. */
+        if (!laXuLy || !s.hoSoDangMo) s.hoSoDangMo = null;
+        s.trang = 1; Store.luu(); ve();
       },
     },
       el('span', { class: 'ma' }, it.ma === 'MY' ? '★' : it.ma),
-      el('span', { class: 'tn' }, it.ten),
+      el('span', { class: 'tn' }, it.ten,
+        laXuLy && s.hoSoDangMo ? el('small', {}, s.hoSoDangMo) : null),
       it.dem && demCuaToi ? el('span', { class: 'badge' }, demCuaToi) : null,
       !it.daDung ? el('span', { class: 'soon' }, 'sau') : null);
   };
 
   const khoi = [];
-
-  /* Mục ngữ cảnh: chỉ hiện khi đang mở một hồ sơ (M-02 là "menu gốc"). */
-  if (s.hoSoDangMo) {
-    khoi.push(el('div', { class: 'mgrp' },
-      el('div', { class: 'mhd' }, 'Đang mở'),
-      el('button', { class: 'mi on' },
-        el('span', { class: 'ma' }, 'M-02'),
-        el('span', { class: 'tn' }, 'Xử lý hồ sơ',
-          el('small', {}, s.hoSoDangMo)))));
-  }
 
   nhom.forEach(g => {
     khoi.push(el('div', { class: 'mgrp' },
@@ -158,6 +158,56 @@ function veSidebar() {
     el('div', { class: 'mfoot' },
       'Bản mô phỏng giao diện',
       el('div', {}, 'Không có backend · dữ liệu giả')));
+}
+
+/* ----------------------------- M-02 khi chưa chọn hồ sơ nào để xử lý */
+function veChuaChonHoSo() {
+  const s = Store.state;
+  const u = s.user;
+  const cho = Store.hoSoTheoPhamVi()
+    .filter(hs => hs.buocHienTai !== 'ST-99' && laNguoiPhuTrach(hs, u))
+    .sort((a, b) => (hanGanNhat(a) || '9999').localeCompare(hanGanNhat(b) || '9999'));
+
+  const mo = ma => { s.hoSoDangMo = ma; s.tabDangMo = 'khachHang'; Store.luu(); ve(); };
+
+  return el('div', {},
+    el('div', { class: 'crumb' }, 'Kiểm soát sau vay › Xử lý hồ sơ'),
+    el('div', { class: 'page-h' }, el('div', {},
+      el('h1', {}, 'M-02 — Xử lý hồ sơ'),
+      el('p', {}, 'Màn hình tác nghiệp chính, mở theo từng hồ sơ cụ thể'))),
+    el('div', { class: 'banner info' }, el('div', {},
+      el('b', {}, 'Chưa chọn hồ sơ nào. '),
+      'Màn hình xử lý luôn gắn với một hồ sơ cụ thể — chọn hồ sơ từ danh sách bên dưới, '
+      + 'hoặc vào Danh sách hồ sơ rồi bấm vào mã hồ sơ để mở bảng chi tiết.')),
+
+    cho.length
+      ? el('div', { class: 'card' },
+          el('h3', {}, `Hồ sơ đang chờ ${ROLES[u.vaiTro].ten} xử lý (${cho.length})`),
+          el('table', {},
+            el('thead', {}, el('tr', {},
+              ...['Mã hồ sơ', 'Khách hàng', 'Bước xử lý', 'Hạn kiểm tra', 'Tình trạng', ''].map(h => el('th', {}, h)))),
+            el('tbody', {}, ...cho.slice(0, 10).map(hs => el('tr', {},
+              el('td', {}, el('a', { style: 'cursor:pointer', onclick: () => mo(hs.ma) }, hs.ma),
+                tinhCoRuiRo(hs).coRuiRo
+                  ? el('span', { class: 'chip risk', style: 'margin-left:6px' }, 'Có rủi ro') : null),
+              el('td', {}, hs.tenKH, el('div', { class: 'note' }, hs.cif)),
+              el('td', {}, STEPS[hs.buocHienTai].stt + '. ' + STEPS[hs.buocHienTai].ten),
+              el('td', {}, dinhDangNgay(hanGanNhat(hs)),
+                el('div', { class: 'note' }, nhanHanTuongDoi(hs, s.ngayHeThong))),
+              el('td', {}, chipTinhTrang(hs)),
+              el('td', {}, el('button', { class: 'btn sm pri', onclick: () => mo(hs.ma) }, 'Mở hồ sơ')))))))
+      : el('div', { class: 'card' }, el('div', { class: 'empty' },
+          `Hiện không có hồ sơ nào đang chờ ${ROLES[u.vaiTro].ten} xử lý.`)),
+
+    el('div', { style: 'display:flex;gap:8px' },
+      el('button', {
+        class: 'btn',
+        onclick: () => { s.manHinh = 'M-01'; s.hoSoDangMo = null; Store.luu(); ve(); },
+      }, 'Sang Danh sách hồ sơ'),
+      ROLES[u.vaiTro].chiXem ? null : el('button', {
+        class: 'btn',
+        onclick: () => { s.manHinh = 'MY'; s.hoSoDangMo = null; Store.luu(); ve(); },
+      }, 'Sang Hồ sơ của tôi')));
 }
 
 /* ------------------------------------------------ Màn hình chưa dựng */
@@ -194,6 +244,7 @@ function ve() {
   const main = el('main', {});
   const mh = Store.state.manHinh;
   if (Store.state.hoSoDangMo) main.append(veManHinhXuLy());
+  else if (mh === 'M-02') main.append(veChuaChonHoSo());
   else if (mh === 'M-03') main.append(veBaoCao());
   else if (mh === 'M-01' || mh === 'MY') main.append(veDanhSach());
   else main.append(veChuaDung(mh));

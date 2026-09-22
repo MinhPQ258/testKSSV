@@ -289,6 +289,7 @@ const MENU = [
   { nhom: null, items: [
     { ma: 'M-01', ten: 'Danh sách hồ sơ',      vaiTro: ['R1','R2','R3','R4','R5','R6','R7','R8','R10','R11'], daDung: true },
     { ma: 'MY',   ten: 'Hồ sơ của tôi',        vaiTro: ['R1','R2','R3','R4','R5','R6','R7'],                   daDung: true, dem: true },
+    { ma: 'M-02', ten: 'Xử lý hồ sơ',          vaiTro: ['R1','R2','R3','R4','R5','R6','R7','R10','R11'],       daDung: true },
     { ma: 'M-16', ten: 'Quản lý giao dịch',    vaiTro: ['R6','R7','R8','R10'],
       moTa: 'Đối soát dữ liệu giao dịch nhận từ LOS/Core, xử lý lại giao dịch lỗi' },
   ]},

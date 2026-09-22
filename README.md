@@ -35,6 +35,7 @@ rồi mở http://localhost:5321 — đây là cách đã được kiểm chứn
 | Màn hình | Trạng thái |
 |---|---|
 | Thanh tiêu đề + **thanh bên** (NFR-01) | ✅ 5 nhóm menu, ẩn/hiện theo vai trò |
+| Menu **M-02 Xử lý hồ sơ** | ✅ thường trực; hiện mã hồ sơ đang mở; chưa chọn hồ sơ thì hiện danh sách hồ sơ đang chờ mình |
 | Đăng nhập giả (chọn tài khoản) | ✅ 13 tài khoản phủ 10 vai trò |
 | M-01 Danh sách hồ sơ | ✅ 4 thẻ chỉ số, 2 tab, gom nhóm, tìm kiếm, phân trang, panel chi tiết |
 | M-02 Xử lý hồ sơ | ✅ 6 tab, 2 sub-tab, thanh tiến trình, thanh thao tác theo ngữ cảnh |
