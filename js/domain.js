@@ -15,6 +15,7 @@ const ROLES = {
   R5:  { ma: 'R5',  ten: 'Trưởng bộ phận KSSV',        tat: 'Trưởng BP KSSV',  donVi: 'HO'   },
   R6:  { ma: 'R6',  ten: 'Cán bộ Phòng KSSV',          tat: 'CB KSSV',         donVi: 'HO'   },
   R7:  { ma: 'R7',  ten: 'Lãnh đạo Phòng KSSV',        tat: 'TL KSSV',         donVi: 'HO'   },
+  R8:  { ma: 'R8',  ten: 'Quản trị hệ thống',          tat: 'Admin',           donVi: 'HO',   chiXem: true },
   R10: { ma: 'R10', ten: 'Vai trò xem toàn hệ thống',  tat: 'Viewer HO',       donVi: 'HO',   chiXem: true },
   R11: { ma: 'R11', ten: 'Vai trò xem theo đơn vị',    tat: 'Viewer ĐVKD',     donVi: 'ĐVKD', chiXem: true },
 };
@@ -277,6 +278,61 @@ const ANH_XA_BAO_CAO = {
   ketQuaSDV:      { 'Đúng mục đích': 'Đúng', 'Sai mục đích': 'Sai mục đích',
                     'Chưa tới kỳ': 'Chưa tới kỳ', 'Không kiểm tra': 'Không kiểm tra' },
 };
+
+/* ------------------------------------------------ MENU THANH BÊN (NFR-01) */
+/* Cấu trúc menu theo cột "Nhóm menu" của Danh mục màn hình trong URD.
+ * vaiTro = danh sách vai trò được thấy mục này, lấy theo Ma trận vai trò —
+ * màn hình; với nhóm Tra cứu lấy theo bảng chi tiết từng màn hình (AMB-21).
+ * daDung = đã dựng trong bản mô phỏng; còn lại hiển thị mờ để nghiệp vụ rà
+ * soát sơ đồ điều hướng tổng thể.                                          */
+const MENU = [
+  { nhom: null, items: [
+    { ma: 'M-01', ten: 'Danh sách hồ sơ',      vaiTro: ['R1','R2','R3','R4','R5','R6','R7','R8','R10','R11'], daDung: true },
+    { ma: 'MY',   ten: 'Hồ sơ của tôi',        vaiTro: ['R1','R2','R3','R4','R5','R6','R7'],                   daDung: true, dem: true },
+    { ma: 'M-16', ten: 'Quản lý giao dịch',    vaiTro: ['R6','R7','R8','R10'],
+      moTa: 'Đối soát dữ liệu giao dịch nhận từ LOS/Core, xử lý lại giao dịch lỗi' },
+  ]},
+  { nhom: 'Báo cáo', items: [
+    { ma: 'M-03', ten: 'Báo cáo tổng hợp KSSV', vaiTro: ['R2','R3','R4','R5','R6','R7','R8','R10','R11'], daDung: true },
+    { ma: 'M-08', ten: 'Báo cáo hồ sơ quá hạn', vaiTro: ['R3','R4','R5','R6','R7','R8','R10','R11'],
+      moTa: 'Theo dõi và đôn đốc hồ sơ quá hạn kiểm tra, quá hạn khắc phục' },
+    { ma: 'M-09', ten: 'Báo cáo theo chi nhánh', vaiTro: ['R4','R5','R6','R7','R8','R10'],
+      moTa: 'Chỉ tiêu KSSV theo từng chi nhánh phục vụ đánh giá chất lượng' },
+  ]},
+  { nhom: 'Tra cứu', items: [
+    { ma: 'M-05', ten: 'Tra cứu hồ sơ',         vaiTro: ['R1','R2','R3','R4','R5','R6','R7','R8','R10','R11'],
+      moTa: 'Tra cứu theo nhiều tiêu chí kết hợp, gồm cả hồ sơ đã hoàn thành' },
+    { ma: 'M-06', ten: 'Tra cứu khách hàng',    vaiTro: ['R2','R3','R4','R5','R6','R7','R10','R11'],
+      moTa: 'Toàn bộ lịch sử kiểm soát sau vay của một khách hàng theo CIF' },
+    { ma: 'M-07', ten: 'Tra cứu lịch sử xử lý', vaiTro: ['R3','R4','R5','R6','R7','R8','R10'],
+      moTa: 'Nhật ký xử lý theo người dùng, theo bước, theo khoảng thời gian' },
+  ]},
+  { nhom: 'Quản trị hệ thống', items: [
+    { ma: 'M-04', ten: 'Phân quyền hệ thống',   vaiTro: ['R8','R10'],
+      moTa: 'Cấu hình quyền theo chức năng kết hợp phạm vi dữ liệu (BR-101)' },
+    { ma: 'M-11', ten: 'Quản lý người dùng',    vaiTro: ['R8','R10'],
+      moTa: 'Tài khoản, gán vai trò, phạm vi đơn vị, trạng thái tài khoản' },
+    { ma: 'M-12', ten: 'Cấu hình luồng xử lý',  vaiTro: ['R7','R8','R10'],
+      moTa: 'Chỉ hiển thị cấu hình đang hiệu lực, không sửa trên giao diện (BR-551)' },
+    { ma: 'M-13', ten: 'Nhật ký hệ thống',      vaiTro: ['R8','R10'],
+      moTa: 'Truy vết thao tác phục vụ kiểm toán nội bộ và xử lý sự cố' },
+    { ma: 'M-19', ten: 'Cấu hình thông báo',    vaiTro: ['R7','R8','R10'],
+      moTa: 'Mốc nhắc hạn, ngưỡng leo thang, kênh gửi, mẫu nội dung' },
+  ]},
+  { nhom: 'Tham số hệ thống', items: [
+    { ma: 'M-14', ten: 'Danh mục loại tài liệu', vaiTro: ['R6','R7','R8','R10'],
+      moTa: 'Loại tài liệu đính kèm, số tệp tối đa theo từng loại (BR-507)' },
+    { ma: 'M-15', ten: 'Danh mục sản phẩm vay',  vaiTro: ['R6','R7','R8','R10'],
+      moTa: 'Danh mục dùng chung, đồng bộ từ LOS/Core (BR-570)' },
+  ]},
+];
+
+/* Menu đã lọc theo vai trò; bỏ nhóm không còn mục nào. */
+function menuTheoVaiTro(vaiTro) {
+  return MENU
+    .map(g => ({ nhom: g.nhom, items: g.items.filter(i => i.vaiTro.includes(vaiTro)) }))
+    .filter(g => g.items.length);
+}
 
 const LOAI_HO_SO = {
   L1: 'Kiểm tra tuân thủ điều kiện PD/sản phẩm',

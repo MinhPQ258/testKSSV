@@ -82,21 +82,14 @@ function veDevBar() {
 function veTopBar() {
   const u = Store.state.user;
   const chuaDoc = Store.state.thongBao.filter(t => !t.daDoc).length;
-  const mh = Store.state.manHinh;
-  const nut = (ma, nhan) => el('button', {
-    class: mh === ma ? 'on' : '',
-    onclick: () => { Store.state.manHinh = ma; Store.state.hoSoDangMo = null; Store.luu(); ve(); },
-  }, nhan);
 
   return el('div', { id: 'topbar' },
     el('div', { class: 'brand' }, 'PGBank', el('small', {}, 'Kiểm soát sau vay')),
-    el('nav', {}, nut('M-01', 'Danh sách hồ sơ'), nut('M-03', 'Báo cáo')),
     el('div', { class: 'sep' }),
-    el('button', { class: 'bell', title: 'Trung tâm thông báo', onclick: moThongBao },
+    el('button', { class: 'bell', title: 'Trung tâm thông báo (M-17)', onclick: moThongBao },
       '🔔', chuaDoc ? el('span', {}, chuaDoc) : null),
-    el('div', { class: 'who' }, el('b', {}, u.hoTen),
-      `${ROLES[u.vaiTro].tat} · ${u.tenPhong}`),
-    el('button', { class: 'out', onclick: () => { Store.state.user = null; Store.luu(); ve(); } }, 'Đăng xuất'));
+    el('button', { class: 'out', title: 'M-18 Đăng xuất',
+      onclick: () => { Store.state.user = null; Store.luu(); ve(); } }, 'Đăng xuất'));
 }
 
 function moThongBao() {
@@ -111,6 +104,87 @@ function moThongBao() {
   moModal('Trung tâm thông báo', body, [el('button', { class: 'btn pri', onclick: () => { dongModal(); ve(); } }, 'Đóng')]);
 }
 
+/* ------------------------------------------------------- THANH BÊN (NFR-01) */
+function veSidebar() {
+  const s = Store.state;
+  const u = s.user;
+  const nhom = menuTheoVaiTro(u.vaiTro);
+
+  /* Số hồ sơ đang chờ chính người dùng xử lý — UC-M01-13 */
+  const demCuaToi = Store.hoSoTheoPhamVi()
+    .filter(hs => hs.buocHienTai !== 'ST-99' && laNguoiPhuTrach(hs, u)).length;
+
+  const mucMenu = it => {
+    const dangChon = !s.hoSoDangMo && (s.manHinh === it.ma);
+    return el('button', {
+      class: 'mi' + (dangChon ? ' on' : '') + (it.daDung ? '' : ' chuaDung'),
+      title: it.daDung ? '' : (it.moTa || '') + ' — thuộc giai đoạn mở rộng, chưa dựng trong bản mô phỏng',
+      onclick: () => {
+        s.manHinh = it.ma; s.hoSoDangMo = null; s.trang = 1; Store.luu(); ve();
+      },
+    },
+      el('span', { class: 'ma' }, it.ma === 'MY' ? '★' : it.ma),
+      el('span', { class: 'tn' }, it.ten),
+      it.dem && demCuaToi ? el('span', { class: 'badge' }, demCuaToi) : null,
+      !it.daDung ? el('span', { class: 'soon' }, 'sau') : null);
+  };
+
+  const khoi = [];
+
+  /* Mục ngữ cảnh: chỉ hiện khi đang mở một hồ sơ (M-02 là "menu gốc"). */
+  if (s.hoSoDangMo) {
+    khoi.push(el('div', { class: 'mgrp' },
+      el('div', { class: 'mhd' }, 'Đang mở'),
+      el('button', { class: 'mi on' },
+        el('span', { class: 'ma' }, 'M-02'),
+        el('span', { class: 'tn' }, 'Xử lý hồ sơ',
+          el('small', {}, s.hoSoDangMo)))));
+  }
+
+  nhom.forEach(g => {
+    khoi.push(el('div', { class: 'mgrp' },
+      g.nhom ? el('div', { class: 'mhd' }, g.nhom) : null,
+      ...g.items.map(mucMenu)));
+  });
+
+  return el('aside', { id: 'sidebar' },
+    el('div', { class: 'me' },
+      el('div', { class: 'av' }, u.hoTen.split(' ').pop()[0]),
+      el('div', { style: 'min-width:0' },
+        el('b', {}, u.hoTen),
+        el('span', {}, ROLES[u.vaiTro].ten),
+        el('span', {}, `${u.tenPhong} · ${u.tenChiNhanh}`))),
+    ...khoi,
+    el('div', { class: 'mfoot' },
+      'Bản mô phỏng giao diện',
+      el('div', {}, 'Không có backend · dữ liệu giả')));
+}
+
+/* ------------------------------------------------ Màn hình chưa dựng */
+function veChuaDung(ma) {
+  let it = null, nhomCha = null;
+  MENU.forEach(g => g.items.forEach(x => { if (x.ma === ma) { it = x; nhomCha = g.nhom; } }));
+  if (!it) return el('div', { class: 'empty' }, 'Không tìm thấy màn hình ' + ma);
+
+  return el('div', {},
+    el('div', { class: 'crumb' }, 'Kiểm soát sau vay › ' + (nhomCha ? nhomCha + ' › ' : '') + it.ten),
+    el('div', { class: 'page-h' }, el('div', {},
+      el('h1', {}, `${it.ma} — ${it.ten}`),
+      el('p', {}, it.moTa || ''))),
+    el('div', { class: 'card' }, el('div', { class: 'body' },
+      el('div', { class: 'banner info' }, el('div', {},
+        el('b', {}, 'Màn hình này chưa được dựng trong bản mô phỏng.'),
+        el('div', { style: 'margin-top:5px' },
+          'Theo URD, đây là màn hình thuộc nhóm “Định hướng mở rộng giai đoạn tiếp theo”. '
+          + 'Mục này vẫn hiển thị trên thanh bên để đơn vị nghiệp vụ rà soát sơ đồ điều hướng '
+          + 'tổng thể và xác nhận vai trò nào được thấy nhóm menu nào.'))),
+      el('div', { class: 'kv' },
+        el('div', { class: 'k' }, 'Nhóm menu'), el('div', { class: 'v' }, nhomCha || '(menu gốc)'),
+        el('div', { class: 'k' }, 'Vai trò được truy cập'),
+        el('div', { class: 'v' }, it.vaiTro.map(v => el('span', { class: 'chip mute', style: 'margin-right:5px' },
+          `${v} ${ROLES[v] ? ROLES[v].tat : ''}`)))))));
+}
+
 /* ------------------------------------------------------------------ VẼ */
 function ve() {
   if (!Store.state.user) return veDangNhap();
@@ -118,11 +192,13 @@ function ve() {
   document.body.append(veTopBar());
 
   const main = el('main', {});
+  const mh = Store.state.manHinh;
   if (Store.state.hoSoDangMo) main.append(veManHinhXuLy());
-  else if (Store.state.manHinh === 'M-03') main.append(veBaoCao());
-  else main.append(veDanhSach());
+  else if (mh === 'M-03') main.append(veBaoCao());
+  else if (mh === 'M-01' || mh === 'MY') main.append(veDanhSach());
+  else main.append(veChuaDung(mh));
 
-  document.body.append(main);
+  document.body.append(el('div', { id: 'shell' }, veSidebar(), main));
   veDevBar();
 }
 

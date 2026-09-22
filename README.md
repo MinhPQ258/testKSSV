@@ -34,14 +34,34 @@ rồi mở http://localhost:5321 — đây là cách đã được kiểm chứn
 
 | Màn hình | Trạng thái |
 |---|---|
-| Đăng nhập giả (chọn tài khoản) | ✅ 12 tài khoản phủ 9 vai trò |
+| Thanh tiêu đề + **thanh bên** (NFR-01) | ✅ 5 nhóm menu, ẩn/hiện theo vai trò |
+| Đăng nhập giả (chọn tài khoản) | ✅ 13 tài khoản phủ 10 vai trò |
 | M-01 Danh sách hồ sơ | ✅ 4 thẻ chỉ số, 2 tab, gom nhóm, tìm kiếm, phân trang, panel chi tiết |
 | M-02 Xử lý hồ sơ | ✅ 6 tab, 2 sub-tab, thanh tiến trình, thanh thao tác theo ngữ cảnh |
 | M-03 Báo cáo tổng hợp | ✅ 2 biểu mẫu, có áp bảng ánh xạ BR-522 |
 | Trung tâm thông báo | ✅ rút gọn (chuông + danh sách) |
 | Công cụ thử nghiệm | ✅ tua ngày, đặt lại dữ liệu |
 
-**Chưa dựng (ngoài phạm vi vòng 1):** M-04 Phân quyền, các màn hình tra cứu, báo cáo quản trị, quản trị hệ thống và tham số — đều thuộc "Định hướng mở rộng giai đoạn tiếp theo".
+**Chưa dựng (ngoài phạm vi vòng 1):** M-04 Phân quyền, các màn hình tra cứu (M-05→M-07), báo cáo quản trị (M-08, M-09), quản trị hệ thống (M-11→M-13, M-19), tham số (M-14, M-15) và M-16 Quản lý giao dịch — đều thuộc "Định hướng mở rộng giai đoạn tiếp theo".
+
+Các màn hình này **vẫn hiển thị trên thanh bên** (gắn nhãn `SAU`, chữ mờ) và mở ra một trang giải thích, để đơn vị nghiệp vụ rà soát được **sơ đồ điều hướng tổng thể** và xác nhận vai trò nào thấy nhóm menu nào — một điểm URD chưa đặc tả.
+
+### Menu theo vai trò
+
+Thanh bên lọc theo Ma trận vai trò — màn hình của URD (nhóm Tra cứu lấy theo bảng chi tiết từng màn hình):
+
+| Vai trò | Nhóm menu nhìn thấy |
+|---|---|
+| R1 TNTD | gốc · Tra cứu |
+| R2 CBBH | gốc · Báo cáo · Tra cứu |
+| R3, R4, R5 | gốc · Báo cáo · Tra cứu |
+| R6 CB KSSV | gốc · Báo cáo · Tra cứu · Tham số hệ thống |
+| R7 TL KSSV | gốc · Báo cáo · Tra cứu · Quản trị hệ thống · Tham số hệ thống |
+| R8 Admin | toàn bộ, trừ "Hồ sơ của tôi" (không tham gia luồng xử lý) |
+| R10 Viewer HO | toàn bộ ở chế độ chỉ xem |
+| R11 Viewer ĐVKD | gốc · Báo cáo · Tra cứu, phạm vi dữ liệu theo chi nhánh |
+
+Mục **★ Hồ sơ của tôi** có huy hiệu đếm số hồ sơ đang chờ chính người dùng xử lý — lọc theo đúng ba điều kiện của BR-329 (UC-M01-13).
 
 ---
 

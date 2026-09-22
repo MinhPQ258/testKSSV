@@ -16,7 +16,10 @@ function chipTinhTrang(hs) {
 function veDanhSach() {
   const s = Store.state;
   const homNay = s.ngayHeThong;
-  const tatCa = Store.hoSoTheoPhamVi();
+  const cuaToi = s.manHinh === 'MY';          /* UC-M01-13 */
+
+  const tatCa = Store.hoSoTheoPhamVi()
+    .filter(hs => !cuaToi || (hs.buocHienTai !== 'ST-99' && laNguoiPhuTrach(hs, s.user)));
 
   const tab = s.tabDanhSach || 'tab1';
   const theoTab = tatCa.filter(hs =>
@@ -116,13 +119,18 @@ function veDanhSach() {
       el('button', { class: 'btn sm', disabled: trang >= tongTrang, onclick: () => { s.trang = trang + 1; Store.luu(); ve(); } }, 'Sau ›')));
 
   return el('div', {},
-    el('div', { class: 'crumb' }, 'Kiểm soát sau vay › Danh sách hồ sơ'),
+    el('div', { class: 'crumb' }, 'Kiểm soát sau vay › ' + (cuaToi ? 'Hồ sơ của tôi' : 'Danh sách hồ sơ')),
     el('div', { class: 'page-h' },
       el('div', {},
-        el('h1', {}, 'Danh sách hồ sơ kiểm soát sau vay'),
-        el('p', {}, 'Theo dõi, tra cứu và thực hiện kiểm tra sau vay theo từng khoản cấp tín dụng')),
+        el('h1', {}, cuaToi ? 'Hồ sơ của tôi' : 'Danh sách hồ sơ kiểm soát sau vay'),
+        el('p', {}, cuaToi
+          ? `Hồ sơ đang ở bước thuộc vai trò ${ROLES[s.user.vaiTro].ten} và do chính anh/chị phụ trách`
+          : 'Theo dõi, tra cứu và thực hiện kiểm tra sau vay theo từng khoản cấp tín dụng')),
       el('div', { class: 'sep' }),
       el('button', { class: 'btn', onclick: () => alert('Kết xuất Excel theo bộ lọc hiện tại (mô phỏng).') }, 'Xuất Excel')),
+    cuaToi ? el('div', { class: 'banner info' }, el('div', {},
+      'Danh sách lọc theo ba điều kiện của BR-329: đúng vai trò phụ trách bước hiện tại, '
+      + 'đúng người được phân công, và hồ sơ chưa hoàn thành.')) : null,
     stats,
     el('div', { class: 'card' }, el('div', { class: 'body' },
       el('div', { class: 'filters' },

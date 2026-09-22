@@ -26,6 +26,7 @@ const USERS = [
   { id: 'u10', hoTen: 'Đặng Thị Mai',    vaiTro: 'R3',  ...DON_VI[2] },
   { id: 'u11', hoTen: 'Lý Thanh Nam',    vaiTro: 'R10', maChiNhanh: 'HO', tenChiNhanh: 'Hội sở', maPhong: 'HO-KTNB', tenPhong: 'Ban Kiểm toán nội bộ' },
   { id: 'u12', hoTen: 'Trịnh Văn Phúc',  vaiTro: 'R11', ...DON_VI[0] },
+  { id: 'u13', hoTen: 'Phan Quốc Đạt',   vaiTro: 'R8',  maChiNhanh: 'HO', tenChiNhanh: 'Hội sở', maPhong: 'HO-CNTT', tenPhong: 'Khối CNTT' },
 ];
 
 const KHACH_HANG = [
