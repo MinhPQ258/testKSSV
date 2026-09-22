@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+
+# Không đưa tài liệu nội bộ vào repo
+*.docx
+*.xlsx
+*.pdf
