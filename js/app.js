@@ -8,6 +8,11 @@ const el = (tag, attrs = {}, ...kids) => {
     if (k === 'class') n.className = attrs[k];
     else if (k === 'html') n.innerHTML = attrs[k];
     else if (k.startsWith('on')) n.addEventListener(k.slice(2), attrs[k]);
+    /* value phải gán bằng thuộc tính JS, không phải setAttribute: với
+     * <textarea> thì setAttribute('value') hoàn toàn không có tác dụng vì
+     * nội dung textarea nằm ở text con. */
+    else if (k === 'value' && (tag === 'input' || tag === 'textarea'))
+      n.value = attrs[k] == null ? '' : attrs[k];
     else if (attrs[k] !== null && attrs[k] !== undefined && attrs[k] !== false)
       n.setAttribute(k, attrs[k]);
   }

@@ -259,7 +259,9 @@ const DANH_MUC = {
   ketQuaDieuKien: ['Tuân thủ', 'Vi phạm', 'Không quy định', 'Chưa đến kỳ'],
   ketQuaHDKD:     ['Bình thường', 'Có dấu hiệu rủi ro', 'Chưa đến kỳ', 'Không kiểm tra'],
   taiLieuHopLe:   ['Hợp lệ', 'Không hợp lệ'],
-  danhGiaRuiRo:   ['Không rủi ro', 'Có rủi ro'],
+  /* Danh mục "Đánh giá rủi ro / Không rủi ro" ở từng khối đã được bỏ khỏi
+   * giao diện theo yêu cầu nghiệp vụ 23/09/2026; thay bằng một ô tích duy
+   * nhất ở bước CBBH kèm ý kiến bắt buộc — xem khoiTichRuiRo().           */
   trangThaiPA:    ['Đang trình', 'Đã được duyệt, đang thực hiện', 'Đã khắc phục xong'],
   trangThaiCheTai:['Đang áp dụng', 'Hủy bỏ chế tài'],
   tinhTrangKP:    ['Toàn bộ', '1 phần', 'Chưa'],

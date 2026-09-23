@@ -363,8 +363,13 @@ function tabDVKD(hs, u, cheDo) {
         onclick: () => { Store.state.subTab = k; Store.luu(); ve(); },
       }, t)));
 
+  /* Ô tích rủi ro là thuộc tính của cả hồ sơ nên hiển thị ở cả hai sub-tab.
+   * Chỉ ẩn với vai trò chỉ xem khi chưa tích (không có gì để xem).          */
+  const hienTich = nhapCBBH || hs.tichCoRuiRo;
+
   return el('div', {}, subTabs,
-    sub === 'sdv' ? subTabSDV(hs, nhapTNTD, nhapCBBH) : subTabDieuKien(hs, u, nhapTNTD, nhapCBBH, cheDo));
+    sub === 'sdv' ? subTabSDV(hs, nhapTNTD, nhapCBBH) : subTabDieuKien(hs, u, nhapTNTD, nhapCBBH, cheDo),
+    hienTich ? khoiTichRuiRo(hs, nhapCBBH) : null);
 }
 
 function subTabSDV(hs, nhapTNTD, nhapCBBH) {
@@ -427,13 +432,44 @@ function subTabSDV(hs, nhapTNTD, nhapCBBH) {
         disabled: !nhapCBBH,
         value: hs.dongLD.filter(d => d.danhGiaRuiRo).map(d => `${d.maLD}: ${d.danhGiaRuiRo}`).join('\n'),
         onchange: e => { if (hs.dongLD[0]) hs.dongLD[0].danhGiaRuiRo = e.target.value; Store.luu(); },
-      })) : null,
-    nhapCBBH ? el('div', { class: 'fld', style: 'margin-top:8px' },
-      el('label', {}, el('input', {
-        type: 'checkbox', style: 'width:auto;margin-right:7px',
-        checked: hs.tichCoRuiRo,
-        onchange: e => { hs.tichCoRuiRo = e.target.checked; Store.luu(); ve(); },
-      }), 'Có rủi ro / dấu hiệu cần lưu ý')) : null);
+      })) : null);
+}
+
+/* Ô tích rủi ro của CBBH — thay cho các trường "Đánh giá rủi ro / không rủi
+ * ro" rải rác ở từng khối. Mặc định KHÔNG tích; tích thì bắt buộc nhập ý
+ * kiến, và hệ thống chặn chuyển bước nếu để trống.                         */
+function khoiTichRuiRo(hs, nhapCBBH) {
+  const tick = !!hs.tichCoRuiRo;
+  return el('div', { class: 'card', style: 'margin-top:16px' },
+    el('h3', {}, 'Đánh giá rủi ro của Cán bộ bán hàng'),
+    el('div', { class: 'body' },
+      el('label', {
+        style: 'display:flex;gap:10px;align-items:flex-start;font-size:13.5px;'
+             + (nhapCBBH ? 'cursor:pointer' : 'cursor:default'),
+      },
+        el('input', {
+          type: 'checkbox', style: 'width:auto;margin:3px 0 0', disabled: !nhapCBBH, checked: tick,
+          onchange: e => {
+            hs.tichCoRuiRo = e.target.checked;
+            if (!e.target.checked) hs.ykienRuiRo = '';
+            Store.luu(); ve();
+          },
+        }),
+        el('span', {},
+          el('b', {}, 'Có rủi ro / dấu hiệu cần lưu ý'),
+          el('div', { class: 'note' },
+            'Mặc định không tích. Tích ô này khi phát hiện dấu hiệu rủi ro cần lưu ý '
+            + 'ngoài các kết quả kiểm tra đã nhập ở trên.'))),
+
+      tick ? el('div', { class: 'fld', style: 'margin:13px 0 0' },
+        el('label', {}, 'Ý kiến đánh giá rủi ro ', el('span', { class: 'req' }, '*')),
+        el('textarea', {
+          disabled: !nhapCBBH, value: hs.ykienRuiRo || '',
+          placeholder: nhapCBBH ? 'Mô tả cụ thể dấu hiệu rủi ro phát hiện được...' : '',
+          onchange: e => { hs.ykienRuiRo = e.target.value; Store.luu(); },
+        }),
+        el('div', { class: 'note' },
+          'Bắt buộc nhập khi đã tích ô rủi ro — hệ thống chặn chuyển bước nếu để trống.')) : null));
 }
 
 function subTabDieuKien(hs, u, nhapTNTD, nhapCBBH, cheDo) {
@@ -448,8 +484,14 @@ function subTabDieuKien(hs, u, nhapTNTD, nhapCBBH, cheDo) {
       ? el('input', { type: 'number', min: 0, style: 'width:78px', value: d.thoiGianYeuCau,
           onchange: e => { d.thoiGianYeuCau = +e.target.value; Store.luu(); } })
       : d.thoiGianYeuCau + ' ngày'),
-    el('td', {}, d.tanSuat),
-    el('td', { style: 'min-width:170px;font-size:12.5px' }, d.cheTai),
+    el('td', {}, nhapTNTD
+      ? el('select', { onchange: e => { d.tanSuat = e.target.value; Store.luu(); } },
+          ...['Thời điểm', 'Định kỳ'].map(v => el('option', { value: v, selected: d.tanSuat === v }, v)))
+      : d.tanSuat),
+    el('td', { style: 'min-width:190px' }, nhapTNTD
+      ? el('textarea', { style: 'min-height:54px', value: d.cheTai || '',
+          onchange: e => { d.cheTai = e.target.value; Store.luu(); } })
+      : el('div', { style: 'font-size:12.5px' }, d.cheTai || '—')),
     el('td', {}, nhapCBBH
       ? el('select', { onchange: e => { d.ketQua = e.target.value || null; Store.luu(); ve(); } },
           el('option', { value: '' }, '— chọn —'),
@@ -761,6 +803,16 @@ function thucHienChuyenBuoc(hs, t) {
         el('div', { class: 'banner err' }, el('div', {},
           'Chưa nhập kết quả kiểm tra cho các khế ước: ' + thieu.join(', '),
           el('div', { class: 'rule' }, 'BR-320'))),
+        [el('button', { class: 'btn pri', onclick: dongModal }, 'Đã hiểu')]);
+      return;
+    }
+    /* Đã tích ô rủi ro thì bắt buộc có ý kiến đánh giá */
+    if (hs.tichCoRuiRo && !String(hs.ykienRuiRo || '').trim()) {
+      moModal('Thiếu ý kiến đánh giá rủi ro',
+        el('div', { class: 'banner err' }, el('div', {},
+          'Hồ sơ đã được tích “Có rủi ro / dấu hiệu cần lưu ý” nhưng chưa nhập '
+          + 'Ý kiến đánh giá rủi ro. Nhập nội dung tại khối Đánh giá rủi ro của '
+          + 'Cán bộ bán hàng trước khi trình phê duyệt.')),
         [el('button', { class: 'btn pri', onclick: dongModal }, 'Đã hiểu')]);
       return;
     }

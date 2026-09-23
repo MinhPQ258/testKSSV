@@ -124,10 +124,11 @@ function sinhHoSo(opts) {
     phuongThucXuLy: opts.phuongThucXuLy || 'Phân công cho cán bộ',
     buocHienTai: opts.buoc,
     dongLD, dieuKien,
-    hdkd: { ketQua: null, taiLieu: null, danhGiaRuiRo: '', ngayKT: null, chiTiet: '' },
-    tsbd: { ketQua: null, taiLieu: null, danhGiaRuiRo: '', ngayKT: null, chiTiet: '' },
+    hdkd: { ketQua: null, taiLieu: null, ngayKT: null, chiTiet: '' },
+    tsbd: { ketQua: null, taiLieu: null, ngayKT: null, chiTiet: '' },
     cheTaiApDung: null,
     tichCoRuiRo: false,
+    ykienRuiRo: '',
     phuongAnKhacPhuc: null,
     theoDoiKhacPhuc: [],
     coCoKhacPhuc: false,
@@ -169,11 +170,9 @@ function sinhHoSo(opts) {
       d.ngayKTGanNhat = ngayLui(rndInt(1, 20));
     });
     hs.hdkd = { ketQua: coRR && Math.random() < 0.4 ? 'Có dấu hiệu rủi ro' : 'Bình thường',
-                taiLieu: 'Hợp lệ', danhGiaRuiRo: '', ngayKT: ngayLui(rndInt(1, 20)), chiTiet: '' };
-    hs.tsbd = { ketQua: 'Bình thường', taiLieu: 'Hợp lệ', danhGiaRuiRo: '',
+                taiLieu: 'Hợp lệ', ngayKT: ngayLui(rndInt(1, 20)), chiTiet: '' };
+    hs.tsbd = { ketQua: 'Bình thường', taiLieu: 'Hợp lệ',
                 ngayKT: ngayLui(rndInt(1, 20)), chiTiet: '' };
-    hs.hdkd.danhGiaRuiRo = hs.hdkd.ketQua === 'Có dấu hiệu rủi ro' ? 'Có rủi ro' : 'Không rủi ro';
-    hs.tsbd.danhGiaRuiRo = 'Không rủi ro';
     if (hs.hdkd.ketQua === 'Có dấu hiệu rủi ro')
       hs.hdkd.chiTiet = 'Doanh thu quý gần nhất giảm 35% so với cùng kỳ, tồn kho tăng mạnh.';
 
@@ -183,9 +182,9 @@ function sinhHoSo(opts) {
     if (!coRR) {
       hs.dongLD.forEach(d => { d.ketQua = 'Đúng mục đích'; d.danhGiaRuiRo = ''; });
       hs.dieuKien.forEach(d => { d.ketQua = 'Tuân thủ'; });
-      hs.hdkd.ketQua = 'Bình thường'; hs.hdkd.danhGiaRuiRo = 'Không rủi ro'; hs.hdkd.chiTiet = '';
-      hs.tsbd.ketQua = 'Bình thường'; hs.tsbd.danhGiaRuiRo = 'Không rủi ro';
-      hs.tichCoRuiRo = false;
+      hs.hdkd.ketQua = 'Bình thường'; hs.hdkd.chiTiet = '';
+      hs.tsbd.ketQua = 'Bình thường';
+      hs.tichCoRuiRo = false; hs.ykienRuiRo = '';
     }
     hs.taiLieuDVKD = [
       { ten: 'Bien_ban_kiem_tra_sau_vay.pdf', loai: 'Biên bản kiểm tra sau vay',
@@ -250,9 +249,20 @@ function sinhHoSo(opts) {
 function sinhBoDuLieu() {
   const ds = [];
   const kichBan = [
+    /* Bước TNTD (ST-01) — gán đúng PGD Hoàn Kiếm để tài khoản TNTD nhìn thấy
+     * theo phân quyền dữ liệu BR-102, phủ đủ 4 loại hồ sơ và 2 luồng PD.   */
+    { loai: 'L1', luongPD: 'Chi nhánh', buoc: 'ST-01', coRuiRo: false, tuoiNgay: 5,  soLD: 1, donVi: DON_VI[0] },
+    { loai: 'L1', luongPD: 'Hội sở',    buoc: 'ST-01', coRuiRo: false, tuoiNgay: 12, soLD: 2, donVi: DON_VI[0] },
+    { loai: 'L2', luongPD: 'Chi nhánh', buoc: 'ST-01', coRuiRo: false, tuoiNgay: 20, soLD: 0, donVi: DON_VI[0] },
+    { loai: 'L3', luongPD: 'Chi nhánh', buoc: 'ST-01', coRuiRo: false, tuoiNgay: 9,  soLD: 2, donVi: DON_VI[0] },
+    { loai: 'L3', luongPD: 'Hội sở',    buoc: 'ST-01', coRuiRo: false, tuoiNgay: 15, soLD: 3, donVi: DON_VI[0] },
+    { loai: 'L4', luongPD: 'Chi nhánh', buoc: 'ST-01', coRuiRo: false, tuoiNgay: 40, soLD: 1, donVi: DON_VI[0] },
+    /* Hồ sơ dữ liệu nguồn từ LOS chưa đầy đủ — TNTD phải nhập tay (BR-207) */
+    { loai: 'L1', luongPD: 'Chi nhánh', buoc: 'ST-01', coRuiRo: false, tuoiNgay: 45, soLD: 2, donVi: DON_VI[0], thieuTNTD: true },
+    { loai: 'L3', luongPD: 'Chi nhánh', buoc: 'ST-01', coRuiRo: false, tuoiNgay: 30, soLD: 2, donVi: DON_VI[2], thieuTNTD: true },
+
     /* Nhánh A — không rủi ro, kết thúc tại GĐ/PGĐ phòng */
     { loai: 'L1', luongPD: 'Chi nhánh', buoc: 'ST-01', coRuiRo: false, tuoiNgay: 8,  soLD: 1 },
-    { loai: 'L1', luongPD: 'Chi nhánh', buoc: 'ST-01', coRuiRo: false, tuoiNgay: 45, soLD: 2, thieuTNTD: true },
     { loai: 'L3', luongPD: 'Chi nhánh', buoc: 'ST-02', coRuiRo: false, tuoiNgay: 22, soLD: 2 },
     { loai: 'L3', luongPD: 'Chi nhánh', buoc: 'ST-02', coRuiRo: false, tuoiNgay: 35, soLD: 3 },
     { loai: 'L2', luongPD: 'Chi nhánh', buoc: 'ST-03', coRuiRo: false, tuoiNgay: 28, soLD: 1 },

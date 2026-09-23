@@ -96,7 +96,9 @@ Toàn bộ nằm trong `js/domain.js` — sửa file đó là sửa hành vi ngh
 
 | Quy tắc | Cài đặt |
 |---|---|
-| BR-506 | Cờ rủi ro hệ thống **tự tính** (OR của 4 đánh giá), hiển thị chỉ đọc kèm diễn giải lý do |
+| BR-506 | Cờ rủi ro hệ thống **tự tính** (OR các kết quả kiểm tra + ô tích của CBBH), hiển thị chỉ đọc kèm diễn giải lý do |
+| Ô tích rủi ro | Một ô tích duy nhất ở bước CBBH thay cho các trường "Đánh giá rủi ro/không rủi ro" rải rác. Mặc định **không tích**; tích thì **bắt buộc nhập ý kiến**, chặn chuyển bước nếu để trống |
+| Bước TNTD | Sửa được: Mục đích vay, Mục đích giải ngân theo từng LD, Nội dung điều kiện, Thời gian yêu cầu kiểm tra, Chế tài, Tần suất kiểm tra |
 | BR-201 | Luồng phê duyệt chỉ đọc, kế thừa từ CAR — không sửa được |
 | BR-301 | Hồ sơ có rủi ro → **ẩn hẳn** nút phê duyệt kết thúc ở GĐ/PGĐ phòng |
 | BR-302 | Hồ sơ luồng Hội sở → **vô hiệu hóa** nút Đồng ý ở GĐ/PGĐ chi nhánh, kèm chú thích lý do |
