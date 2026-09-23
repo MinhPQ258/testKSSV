@@ -266,6 +266,14 @@ function sinhBoDuLieu() {
     { loai: 'L1', luongPD: 'Chi nhánh', buoc: 'ST-01', coRuiRo: false, tuoiNgay: 45, soLD: 2, donVi: DON_VI[0], thieuTNTD: true },
     { loai: 'L3', luongPD: 'Chi nhánh', buoc: 'ST-01', coRuiRo: false, tuoiNgay: 30, soLD: 2, donVi: DON_VI[2], thieuTNTD: true },
 
+    /* Bổ sung 5 hồ sơ ở bước TNTD, đa dạng số dòng điều kiện và số khế ước
+     * để có đủ dữ liệu thao tác ngay trên màn hình Xử lý hồ sơ.            */
+    { loai: 'L1', luongPD: 'Chi nhánh', buoc: 'ST-01', coRuiRo: false, tuoiNgay: 3,   soLD: 1, soDieuKien: 5, donVi: DON_VI[0] },
+    { loai: 'L3', luongPD: 'Chi nhánh', buoc: 'ST-01', coRuiRo: false, tuoiNgay: 18,  soLD: 4, soDieuKien: 4, donVi: DON_VI[0] },
+    { loai: 'L2', luongPD: 'Hội sở',    buoc: 'ST-01', coRuiRo: false, tuoiNgay: 26,  soLD: 2, soDieuKien: 3, donVi: DON_VI[0] },
+    { loai: 'L4', luongPD: 'Hội sở',    buoc: 'ST-01', coRuiRo: false, tuoiNgay: 95,  soLD: 2, soDieuKien: 2, donVi: DON_VI[0] },
+    { loai: 'L1', luongPD: 'Chi nhánh', buoc: 'ST-01', coRuiRo: false, tuoiNgay: 130, soLD: 3, soDieuKien: 5, donVi: DON_VI[0], thieuTNTD: true },
+
     /* Nhánh A — không rủi ro, kết thúc tại GĐ/PGĐ phòng */
     { loai: 'L1', luongPD: 'Chi nhánh', buoc: 'ST-01', coRuiRo: false, tuoiNgay: 8,  soLD: 1 },
     { loai: 'L3', luongPD: 'Chi nhánh', buoc: 'ST-02', coRuiRo: false, tuoiNgay: 22, soLD: 2 },
