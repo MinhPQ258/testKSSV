@@ -64,22 +64,9 @@ function tinhCoRuiRo(hs) {
   return { coRuiRo: lyDo.length > 0, lyDo };
 }
 
-/* Các kết quả kiểm tra vốn từng tự bật cờ rủi ro theo BR-506 cũ. Nay chỉ
- * dùng để hiển thị ghi chú tham khảo cho CBBH, KHÔNG ảnh hưởng định tuyến. */
-function dauHieuTuKetQua(hs) {
-  const dh = [];
-  (hs.dongLD || []).forEach(d => {
-    if (d.ketQua === 'Sai mục đích') dh.push(`Khế ước ${d.maLD}: Sai mục đích`);
-  });
-  (hs.dieuKien || []).forEach((d, i) => {
-    if (d.ketQua === 'Vi phạm') dh.push(`Điều kiện #${i + 1}: Vi phạm`);
-  });
-  if (hs.hdkd && hs.hdkd.ketQua === 'Có dấu hiệu rủi ro') dh.push('Kiểm tra HĐKD: Có dấu hiệu rủi ro');
-  if (hs.tsbd && hs.tsbd.ketQua === 'Có dấu hiệu rủi ro') dh.push('Kiểm tra TSBĐ: Có dấu hiệu rủi ro');
-  if (hs.hdkd && hs.hdkd.taiLieu === 'Không hợp lệ') dh.push('Tài liệu HĐKD: Không hợp lệ');
-  if (hs.tsbd && hs.tsbd.taiLieu === 'Không hợp lệ') dh.push('Tài liệu TSBĐ: Không hợp lệ');
-  return dh;
-}
+/* Hệ thống KHÔNG tự đánh giá rủi ro dưới bất kỳ hình thức nào: không tự bật
+ * cờ, không gợi ý, không cảnh báo dựa trên kết quả kiểm tra. Toàn bộ việc
+ * đánh giá do cán bộ tự tích thủ công (chốt nghiệp vụ 23/09/2026).        */
 
 /* --------------------------------------- MA TRẬN CHUYỂN BƯỚC — URD v1.1 */
 /* Mỗi phần tử: bước nguồn, nhãn nút, vai trò, điều kiện, bước đích, kiểu.

@@ -300,16 +300,6 @@ function veManHinhXuLy() {
         el('div', { class: 'rule' },
           'Cờ rủi ro xác định theo ô tích của CBBH (chốt nghiệp vụ 23/09/2026)'))));
 
-  /* Ghi chú tham khảo: có kết quả kiểm tra bất lợi nhưng chưa tích ô rủi ro.
-   * Không chặn, không tự bật cờ — chỉ nêu để người xử lý biết hệ quả.      */
-  const dauHieu = dauHieuTuKetQua(hs);
-  if (!rr.coRuiRo && dauHieu.length && hs.buocHienTai !== 'ST-99')
-    banners.push(el('div', { class: 'banner warn' },
-      el('div', {}, el('b', {}, 'Có kết quả kiểm tra bất lợi nhưng chưa tích ô rủi ro. '),
-        dauHieu.join(' · '),
-        el('div', { style: 'margin-top:4px' },
-          'Hồ sơ hiện được coi là KHÔNG rủi ro nên sẽ kết thúc tại bước GĐ/PGĐ phòng, '
-          + 'không trình cấp phê duyệt tiếp theo.'))));
 
   return el('div', {},
     el('div', { class: 'crumb' },
