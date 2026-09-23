@@ -205,9 +205,10 @@ function moDrawer(ma) {
         ...kv('Ngày giải ngân/phát hành đầu tiên', dinhDangNgay(hs.ngayGiaiNganDau)),
         ...kv('Hạn kiểm tra gần nhất', dinhDangNgay(hanGanNhat(hs)) + ' — ' + nhanHanTuongDoi(hs, homNay))),
       rr.coRuiRo ? el('div', { class: 'banner err', style: 'margin-top:14px' },
-        el('div', {}, el('b', {}, 'Hệ thống xác định hồ sơ CÓ dấu hiệu rủi ro'),
+        el('div', {}, el('b', {}, 'Hồ sơ CÓ dấu hiệu rủi ro'),
           el('ul', { style: 'margin:6px 0 0;padding-left:18px' }, ...rr.lyDo.map(l => el('li', {}, l))),
-          el('div', { class: 'rule', style: 'margin-top:6px' }, 'BR-506 — cờ rủi ro do hệ thống tự tính, người dùng không chọn'))) : null,
+          el('div', { class: 'rule', style: 'margin-top:6px' },
+            'Cờ rủi ro xác định theo ô tích của CBBH'))) : null,
       el('div', { class: 'sec' }, 'Luồng xử lý hồ sơ'),
       stepper),
     el('div', { class: 'ft' },
@@ -296,7 +297,19 @@ function veManHinhXuLy() {
     banners.push(el('div', { class: 'banner err' },
       el('div', {}, el('b', {}, 'Hồ sơ có dấu hiệu rủi ro. '),
         rr.lyDo.join(' · '),
-        el('div', { class: 'rule' }, 'BR-506 — hệ thống tự xác định, hiển thị chỉ đọc'))));
+        el('div', { class: 'rule' },
+          'Cờ rủi ro xác định theo ô tích của CBBH (chốt nghiệp vụ 23/09/2026)'))));
+
+  /* Ghi chú tham khảo: có kết quả kiểm tra bất lợi nhưng chưa tích ô rủi ro.
+   * Không chặn, không tự bật cờ — chỉ nêu để người xử lý biết hệ quả.      */
+  const dauHieu = dauHieuTuKetQua(hs);
+  if (!rr.coRuiRo && dauHieu.length && hs.buocHienTai !== 'ST-99')
+    banners.push(el('div', { class: 'banner warn' },
+      el('div', {}, el('b', {}, 'Có kết quả kiểm tra bất lợi nhưng chưa tích ô rủi ro. '),
+        dauHieu.join(' · '),
+        el('div', { style: 'margin-top:4px' },
+          'Hồ sơ hiện được coi là KHÔNG rủi ro nên sẽ kết thúc tại bước GĐ/PGĐ phòng, '
+          + 'không trình cấp phê duyệt tiếp theo.'))));
 
   return el('div', {},
     el('div', { class: 'crumb' },

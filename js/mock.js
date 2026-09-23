@@ -176,8 +176,13 @@ function sinhHoSo(opts) {
     if (hs.hdkd.ketQua === 'Có dấu hiệu rủi ro')
       hs.hdkd.chiTiet = 'Doanh thu quý gần nhất giảm 35% so với cùng kỳ, tồn kho tăng mạnh.';
 
-    /* Nếu kịch bản cần rủi ro mà chưa có điều kiện nào thoả, ép một dấu hiệu. */
-    if (coRR && !tinhCoRuiRo(hs).coRuiRo) hs.tichCoRuiRo = true;
+    /* Cờ rủi ro nay chỉ do CBBH tích (chốt 23/09/2026), nên kịch bản có rủi
+     * ro phải tích ô và có ý kiến thì hồ sơ mới đi đúng nhánh. */
+    if (coRR) {
+      hs.tichCoRuiRo = true;
+      hs.ykienRuiRo = 'Khách hàng có dấu hiệu sử dụng vốn không đúng phương án và chậm '
+                    + 'cung cấp chứng từ theo điều kiện phê duyệt; đề nghị áp dụng biện pháp khắc phục.';
+    }
     /* Nếu kịch bản KHÔNG rủi ro, dọn sạch mọi dấu hiệu. */
     if (!coRR) {
       hs.dongLD.forEach(d => { d.ketQua = 'Đúng mục đích'; d.danhGiaRuiRo = ''; });

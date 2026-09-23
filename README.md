@@ -96,7 +96,7 @@ Toàn bộ nằm trong `js/domain.js` — sửa file đó là sửa hành vi ngh
 
 | Quy tắc | Cài đặt |
 |---|---|
-| BR-506 | Cờ rủi ro hệ thống **tự tính** (OR các kết quả kiểm tra + ô tích của CBBH), hiển thị chỉ đọc kèm diễn giải lý do |
+| ⚠ Cờ rủi ro | **ĐÃ ĐẢO NGƯỢC BR-506** theo chốt nghiệp vụ 23/09/2026: cờ rủi ro **chỉ phụ thuộc ô tích của CBBH**. Các kết quả kiểm tra (Sai mục đích, Vi phạm, HĐKD/TSBĐ rủi ro) **không còn tự suy ra** rủi ro. Cần cập nhật lại BR-506 trong URD trước khi làm FSD |
 | Ô tích rủi ro | Một ô tích duy nhất ở bước CBBH thay cho các trường "Đánh giá rủi ro/không rủi ro" rải rác. Mặc định **không tích**; tích thì **bắt buộc nhập ý kiến**, chặn chuyển bước nếu để trống |
 | Bước TNTD | Sửa được: Mục đích vay, Mục đích giải ngân theo từng LD, Nội dung điều kiện, Thời gian yêu cầu kiểm tra, Chế tài, Tần suất kiểm tra |
 | BR-201 | Luồng phê duyệt chỉ đọc, kế thừa từ CAR — không sửa được |

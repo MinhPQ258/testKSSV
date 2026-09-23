@@ -43,22 +43,42 @@ function chuoiBuoc(hs) {
   return ['ST-01', 'ST-02', 'ST-03', 'ST-04', 'ST-05H', 'ST-06', 'ST-07', 'ST-08', 'ST-05', 'ST-99'];
 }
 
-/* ------------------------------------------------- CỜ RỦI RO — BR-506 */
-/* Hệ thống TỰ TÍNH, người dùng không chọn. Trả về {coRuiRo, lyDo[]}.     */
+/* --------------------------------------------------------- CỜ RỦI RO */
+/* ⚠ ĐÃ ĐẢO NGƯỢC BR-506 theo quyết định nghiệp vụ ngày 23/09/2026.
+ * URD bản 1.1 (BR-506) quy định hệ thống TỰ XÁC ĐỊNH cờ rủi ro bằng phép OR
+ * của 5 điều kiện (Sai mục đích / Vi phạm điều kiện / HĐKD / TSBĐ có dấu
+ * hiệu rủi ro / tài liệu không hợp lệ / CBBH tích ô).
+ *
+ * Nghiệp vụ đã chốt lại: cờ rủi ro CHỈ phụ thuộc ô tích của CBBH. Các kết
+ * quả kiểm tra không còn tự suy ra rủi ro. Hệ quả: hồ sơ có kết quả "Sai
+ * mục đích" nhưng CBBH không tích ô thì vẫn được coi là KHÔNG rủi ro và
+ * GĐ/PGĐ phòng vẫn phê duyệt kết thúc được.
+ *
+ * → Điểm này cần cập nhật lại BR-506 trong URD trước khi chuyển sang FSD. */
 function tinhCoRuiRo(hs) {
   const lyDo = [];
+  if (hs.tichCoRuiRo) {
+    lyDo.push('CBBH tích ô "Có rủi ro / dấu hiệu cần lưu ý"'
+      + (hs.ykienRuiRo ? ' — ' + hs.ykienRuiRo : ''));
+  }
+  return { coRuiRo: lyDo.length > 0, lyDo };
+}
+
+/* Các kết quả kiểm tra vốn từng tự bật cờ rủi ro theo BR-506 cũ. Nay chỉ
+ * dùng để hiển thị ghi chú tham khảo cho CBBH, KHÔNG ảnh hưởng định tuyến. */
+function dauHieuTuKetQua(hs) {
+  const dh = [];
   (hs.dongLD || []).forEach(d => {
-    if (d.ketQua === 'Sai mục đích') lyDo.push(`Khế ước ${d.maLD}: kết quả "Sai mục đích"`);
+    if (d.ketQua === 'Sai mục đích') dh.push(`Khế ước ${d.maLD}: Sai mục đích`);
   });
   (hs.dieuKien || []).forEach((d, i) => {
-    if (d.ketQua === 'Vi phạm') lyDo.push(`Điều kiện #${i + 1}: kết quả "Vi phạm"`);
+    if (d.ketQua === 'Vi phạm') dh.push(`Điều kiện #${i + 1}: Vi phạm`);
   });
-  if (hs.hdkd && hs.hdkd.ketQua === 'Có dấu hiệu rủi ro') lyDo.push('Kiểm tra HĐKD: có dấu hiệu rủi ro');
-  if (hs.tsbd && hs.tsbd.ketQua === 'Có dấu hiệu rủi ro') lyDo.push('Kiểm tra TSBĐ: có dấu hiệu rủi ro');
-  if (hs.hdkd && hs.hdkd.taiLieu === 'Không hợp lệ') lyDo.push('Tài liệu HĐKD không hợp lệ');
-  if (hs.tsbd && hs.tsbd.taiLieu === 'Không hợp lệ') lyDo.push('Tài liệu TSBĐ không hợp lệ');
-  if (hs.tichCoRuiRo) lyDo.push('CBBH tích ô "Có rủi ro/dấu hiệu cần lưu ý"');
-  return { coRuiRo: lyDo.length > 0, lyDo };
+  if (hs.hdkd && hs.hdkd.ketQua === 'Có dấu hiệu rủi ro') dh.push('Kiểm tra HĐKD: Có dấu hiệu rủi ro');
+  if (hs.tsbd && hs.tsbd.ketQua === 'Có dấu hiệu rủi ro') dh.push('Kiểm tra TSBĐ: Có dấu hiệu rủi ro');
+  if (hs.hdkd && hs.hdkd.taiLieu === 'Không hợp lệ') dh.push('Tài liệu HĐKD: Không hợp lệ');
+  if (hs.tsbd && hs.tsbd.taiLieu === 'Không hợp lệ') dh.push('Tài liệu TSBĐ: Không hợp lệ');
+  return dh;
 }
 
 /* --------------------------------------- MA TRẬN CHUYỂN BƯỚC — URD v1.1 */
