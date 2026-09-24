@@ -95,11 +95,9 @@ function sinhHoSo(opts) {
     dieuKien.push({
       noiDung: DIEU_KIEN_MAU[i % DIEU_KIEN_MAU.length],
       thoiGianYeuCau: rnd([15, 30, 60, 90]),
-      ngayKTDauTien: null,
-      cheTai: 'Tăng lãi suất 0,5%/năm cho đến khi khắc phục xong',
-      tanSuat: rnd(['Thời điểm', 'Định kỳ']),
       ketQua: null,
       ngayKTGanNhat: null,
+      ngayKTTiepTheo: null,
       taiLieu: [],
     });
   }
@@ -126,9 +124,12 @@ function sinhHoSo(opts) {
     dongLD, dieuKien,
     hdkd: { ketQua: null, taiLieu: null, ngayKT: null, chiTiet: '' },
     tsbd: { ketQua: null, taiLieu: null, ngayKT: null, chiTiet: '' },
-    cheTaiApDung: null,
-    tichCoRuiRo: false,
-    ykienRuiRo: '',
+    cheTaiApDung: { noiDung: '', ngayBatDau: '', trangThai: 'Đang áp dụng' },
+    dgSDV:     { danhGia: 'Không rủi ro', chiTiet: '' },
+    dgTuanThu: { danhGia: 'Không rủi ro', chiTiet: '' },
+    dgHDKD:    { danhGia: 'Không rủi ro', chiTiet: '' },
+    dgTSBD:    { danhGia: 'Không rủi ro', chiTiet: '' },
+    mucDichGiaiNgan: opts.thieuTNTD ? '' : rnd(MUC_DICH),
     phuongAnKhacPhuc: null,
     theoDoiKhacPhuc: [],
     coCoKhacPhuc: false,
@@ -168,20 +169,24 @@ function sinhHoSo(opts) {
     hs.dieuKien.forEach(d => {
       d.ketQua = coRR && Math.random() < 0.5 ? 'Vi phạm' : 'Tuân thủ';
       d.ngayKTGanNhat = ngayLui(rndInt(1, 20));
+      d.ngayKTTiepTheo = themNgay(d.ngayKTGanNhat, d.thoiGianYeuCau || 30);
     });
     hs.hdkd = { ketQua: coRR && Math.random() < 0.4 ? 'Có dấu hiệu rủi ro' : 'Bình thường',
-                taiLieu: 'Hợp lệ', ngayKT: ngayLui(rndInt(1, 20)), chiTiet: '' };
-    hs.tsbd = { ketQua: 'Bình thường', taiLieu: 'Hợp lệ',
-                ngayKT: ngayLui(rndInt(1, 20)), chiTiet: '' };
+                taiLieu: 'Hợp lệ', ngayKT: ngayLui(rndInt(1, 20)),
+                ngayKTGanNhat: ngayLui(rndInt(1, 20)), ngayKTTiepTheo: themNgay(ngayLui(0), 90) };
+    hs.tsbd = { ketQua: 'Bình thường', taiLieu: 'Hợp lệ', chiTiet: '',
+                ngayKT: ngayLui(rndInt(1, 20)),
+                ngayKTGanNhat: ngayLui(rndInt(1, 20)), ngayKTTiepTheo: themNgay(ngayLui(0), 90) };
     if (hs.hdkd.ketQua === 'Có dấu hiệu rủi ro')
       hs.hdkd.chiTiet = 'Doanh thu quý gần nhất giảm 35% so với cùng kỳ, tồn kho tăng mạnh.';
 
     /* Cờ rủi ro nay chỉ do CBBH tích (chốt 23/09/2026), nên kịch bản có rủi
      * ro phải tích ô và có ý kiến thì hồ sơ mới đi đúng nhánh. */
     if (coRR) {
-      hs.tichCoRuiRo = true;
-      hs.ykienRuiRo = 'Khách hàng có dấu hiệu sử dụng vốn không đúng phương án và chậm '
-                    + 'cung cấp chứng từ theo điều kiện phê duyệt; đề nghị áp dụng biện pháp khắc phục.';
+      hs.dgSDV     = { danhGia: 'Có rủi ro', chiTiet: 'Khách hàng sử dụng vốn không đúng phương án đã được phê duyệt.' };
+      hs.dgTuanThu = { danhGia: 'Có rủi ro', chiTiet: 'Chậm cung cấp chứng từ theo điều kiện phê duyệt.' };
+      hs.cheTaiApDung = { noiDung: 'Tăng lãi suất 0,5%/năm cho đến khi khắc phục xong',
+                          ngayBatDau: ngayLui(rndInt(1, 15)), trangThai: 'Đang áp dụng' };
     }
     /* Nếu kịch bản KHÔNG rủi ro, dọn sạch mọi dấu hiệu. */
     if (!coRR) {
@@ -189,7 +194,10 @@ function sinhHoSo(opts) {
       hs.dieuKien.forEach(d => { d.ketQua = 'Tuân thủ'; });
       hs.hdkd.ketQua = 'Bình thường'; hs.hdkd.chiTiet = '';
       hs.tsbd.ketQua = 'Bình thường';
-      hs.tichCoRuiRo = false; hs.ykienRuiRo = '';
+      hs.dgSDV = { danhGia: 'Không rủi ro', chiTiet: '' };
+      hs.dgTuanThu = { danhGia: 'Không rủi ro', chiTiet: '' };
+      hs.dgHDKD = { danhGia: 'Không rủi ro', chiTiet: '' };
+      hs.dgTSBD = { danhGia: 'Không rủi ro', chiTiet: '' };
     }
     hs.taiLieuDVKD = [
       { ten: 'Bien_ban_kiem_tra_sau_vay.pdf', loai: 'Biên bản kiểm tra sau vay',

@@ -324,31 +324,43 @@ function veManHinhXuLy() {
 function tabKhachHang(hs, cheDo) {
   const nhap = cheDo === 'nhap';
   const ro = (k, v) => el('div', { class: 'fld' }, el('label', {}, k), el('div', { class: 'ro' }, v || '—'));
+
+  /* Khế ước nhận nợ: mỗi LD một dòng */
+  const kuNN = hs.dongLD.length
+    ? el('div', { class: 'ro' }, ...hs.dongLD.map(d =>
+        el('div', {}, d.maLD, el('span', { class: 'note', style: 'margin-left:8px' },
+          `${d.loai} · ${dinhDangNgay(d.ngayNhanNo)}`))))
+    : el('div', { class: 'ro' }, 'Chưa phát sinh');
+
   return el('div', {},
-    el('div', { class: 'sec' }, 'Thông tin định danh — liên kết từ LOS, chỉ đọc'),
+    /* Khối định danh — không có tên cụm */
     el('div', { class: 'grid3' },
-      ro('Mã hồ sơ phê duyệt (CAR)', hs.maCAR),
+      ro('Mã LOS', hs.maCAR),
       ro('Tên khách hàng', hs.tenKH),
       ro('CIF khách hàng', hs.cif),
-      ro('Chi nhánh', `${hs.maChiNhanh} — ${hs.tenChiNhanh}`),
-      ro('Phòng giao dịch', `${hs.maPhong} — ${hs.tenPhong}`),
-      ro('Gói hạn mức (FAC)', hs.maFAC)),
-    el('div', { class: 'sec' }, 'Thông tin khoản cấp tín dụng — liên kết từ LOS / hệ thống giải ngân'),
+      ro('Chi nhánh/Phòng giao dịch', `${hs.tenChiNhanh} / ${hs.tenPhong}`)),
+
+    el('div', { class: 'sec' }, 'Thông tin khoản cấp tín dụng'),
     el('div', { class: 'grid3' },
-      ro('Số khế ước nhận nợ', hs.dongLD.length ? hs.dongLD.map(d => d.maLD).join(', ') : 'Chưa phát sinh'),
-      ro('Ngày giải ngân/phát hành đầu tiên', dinhDangNgay(hs.ngayGiaiNganDau)),
+      el('div', { class: 'fld' }, el('label', {}, 'Khế ước nhận nợ (KUNN)'), kuNN),
+      ro('User cán bộ bán', Store.nguoiDung(hs.cbbhPhuTrach)?.hoTen || '—'),
+      ro('Ngày giải ngân', dinhDangNgay(hs.ngayGiaiNganDau)),
       ro('Sản phẩm vay', hs.sanPham),
-      ro('User cán bộ bán hàng', Store.nguoiDung(hs.cbbhPhuTrach)?.hoTen || '—'),
       el('div', { class: 'fld' }, el('label', {}, 'Luồng phê duyệt'),
         el('div', { class: 'ro' }, hs.luongPD,
-          el('div', { class: 'rule' }, 'BR-201 — kế thừa từ cấp phê duyệt của CAR trên LOS, không sửa được')))),
-    el('div', { class: 'sec' }, 'Mục đích và sản phẩm vay'
-      + (nhap ? ' — TNTD nhập/hoàn thiện theo Nghị quyết phê duyệt' : ' — chỉ đọc từ bước CBBH trở đi')),
+          el('div', { class: 'rule' }, 'BR-201 — kế thừa từ cấp phê duyệt trên LOS, không sửa được')))),
+
     el('div', { class: 'fld' },
       el('label', {}, 'Mục đích vay ', el('span', { class: 'req' }, '*')),
       el('textarea', {
         disabled: !nhap, value: hs.mucDichVay || '',
         onchange: e => { hs.mucDichVay = e.target.value; Store.luu(); },
+      })),
+    el('div', { class: 'fld' },
+      el('label', {}, 'Mục đích giải ngân ', el('span', { class: 'req' }, '*')),
+      el('textarea', {
+        disabled: !nhap, value: hs.mucDichGiaiNgan || '',
+        onchange: e => { hs.mucDichGiaiNgan = e.target.value; Store.luu(); },
       })),
     !nhap ? el('div', { class: 'rule' }, 'BR-602 — chỉ cho phép sửa tại bước TNTD (ST-01)') : null);
 }
@@ -366,13 +378,8 @@ function tabDVKD(hs, u, cheDo) {
         onclick: () => { Store.state.subTab = k; Store.luu(); ve(); },
       }, t)));
 
-  /* Ô tích rủi ro là thuộc tính của cả hồ sơ nên hiển thị ở cả hai sub-tab.
-   * Chỉ ẩn với vai trò chỉ xem khi chưa tích (không có gì để xem).          */
-  const hienTich = nhapCBBH || hs.tichCoRuiRo;
-
   return el('div', {}, subTabs,
-    sub === 'sdv' ? subTabSDV(hs, nhapTNTD, nhapCBBH) : subTabDieuKien(hs, u, nhapTNTD, nhapCBBH, cheDo),
-    hienTich ? khoiTichRuiRo(hs, nhapCBBH) : null);
+    sub === 'sdv' ? subTabSDV(hs, nhapTNTD, nhapCBBH) : subTabDieuKien(hs, u, nhapTNTD, nhapCBBH, cheDo));
 }
 
 function subTabSDV(hs, nhapTNTD, nhapCBBH) {
@@ -387,37 +394,21 @@ function subTabSDV(hs, nhapTNTD, nhapCBBH) {
       el('td', {}, hs.maCAR),
       el('td', {}, el('b', {}, d.maLD), el('div', { class: 'note' }, d.loai)),
       el('td', {}, dinhDangNgay(d.ngayNhanNo)),
-      el('td', {}, (d.soTien / 1e6).toLocaleString('vi-VN') + ' tr'),
-      el('td', { style: 'min-width:230px' },
-        nhapTNTD
-          ? el('textarea', {
-              style: 'min-height:54px', value: d.chiTietMucDich || '',
-              onchange: e => { d.chiTietMucDich = e.target.value; Store.luu(); },
-            })
-          : el('div', { style: 'font-size:12.5px' }, d.chiTietMucDich || el('i', { style: 'color:var(--err)' }, 'Chờ TNTD bổ sung'))),
       el('td', {}, dinhDangNgay(han),
         el('div', { class: 'note' }, d.loai === 'Bảo lãnh/LC' ? 'ngày phát hành + 90' : 'ngày nhận nợ + 30')),
       el('td', {}, d.ngayThucHienKT ? el('span', { class: 'chip ok' }, 'Hoàn thành')
         : qh ? el('span', { class: 'chip err' }, 'Quá hạn') : el('span', { class: 'chip mute' }, 'Chưa thực hiện')),
-      el('td', {},
-        nhapCBBH
-          ? el('input', {
-              type: 'date', value: d.ngayThucHienKT || '', max: homNay,
-              onchange: e => { d.ngayThucHienKT = e.target.value; Store.luu(); ve(); },
-            })
-          : dinhDangNgay(d.ngayThucHienKT)),
-      el('td', {},
-        nhapCBBH
-          ? el('select', {
-              onchange: e => { d.ketQua = e.target.value || null; Store.luu(); ve(); },
-            }, el('option', { value: '' }, '— chọn —'),
-               ...DANH_MUC.ketQuaSDV.map(v => el('option', { value: v, selected: d.ketQua === v }, v)))
-          : (d.ketQua
-              ? el('span', { class: 'chip ' + (d.ketQua === 'Sai mục đích' ? 'err' : 'ok') }, d.ketQua)
-              : '—')));
+      /* Luôn hiển thị, chỉ cho phép sửa tại bước CBBH */
+      el('td', {}, el('input', {
+        type: 'date', value: d.ngayThucHienKT || '', max: homNay, disabled: !nhapCBBH,
+        onchange: e => { d.ngayThucHienKT = e.target.value; Store.luu(); ve(); },
+      })),
+      el('td', {}, el('select', {
+        disabled: !nhapCBBH,
+        onchange: e => { d.ketQua = e.target.value || null; Store.luu(); ve(); },
+      }, el('option', { value: '' }, '— chọn —'),
+         ...DANH_MUC.ketQuaSDV.map(v => el('option', { value: v, selected: d.ketQua === v }, v)))));
   });
-
-  const coSai = hs.dongLD.some(d => d.ketQua === 'Sai mục đích');
 
   return el('div', {},
     el('div', { class: 'banner info' },
@@ -425,55 +416,41 @@ function subTabSDV(hs, nhapTNTD, nhapCBBH) {
         el('div', { class: 'rule' }, 'BR-202, BR-212 — 1 hồ sơ theo CAR ứng với 1..n LD'))),
     el('div', { style: 'overflow-x:auto' },
       el('table', {}, el('thead', {}, el('tr', {},
-        ...['Mã CAR', 'Mã giải ngân (LD)', 'Ngày nhận nợ', 'Số tiền', 'Chi tiết mục đích giải ngân',
+        ...['Mã CAR', 'Mã giải ngân (LD)', 'Ngày nhận nợ',
             'Hạn phải kiểm tra', 'Trạng thái', 'Ngày thực hiện KT', 'Kết quả'].map(h => el('th', {}, h)))),
         el('tbody', {}, ...rows))),
-    coSai ? el('div', { class: 'fld', style: 'margin-top:14px' },
-      el('label', {}, 'Đánh giá dấu hiệu rủi ro ', el('span', { class: 'req' }, '*'),
-        ' — bắt buộc khi có kết quả "Sai mục đích"'),
+    khoiDanhGia(hs, 'dgSDV', 'Đánh giá dấu hiệu rủi ro', nhapCBBH));
+}
+
+/* Khối đánh giá rủi ro dùng chung: radio Không rủi ro / Có rủi ro, mặc định
+ * Không rủi ro; chọn Có rủi ro thì bắt buộc nhập chi tiết.                 */
+function khoiDanhGia(hs, khoa, tieuDe, nhap) {
+  if (!hs[khoa]) hs[khoa] = { danhGia: 'Không rủi ro', chiTiet: '' };
+  const o = hs[khoa];
+  const coRR = o.danhGia === 'Có rủi ro';
+
+  const radio = gt => el('label', {
+    style: 'display:inline-flex;gap:6px;align-items:center;margin-right:20px;font-size:13px;'
+         + (nhap ? 'cursor:pointer' : ''),
+  },
+    el('input', {
+      type: 'radio', name: khoa + '-' + hs.ma, style: 'width:auto;margin:0',
+      disabled: !nhap, checked: o.danhGia === gt,
+      onchange: () => { o.danhGia = gt; if (gt !== 'Có rủi ro') o.chiTiet = ''; Store.luu(); ve(); },
+    }), gt);
+
+  return el('div', {},
+    el('div', { class: 'sec' }, tieuDe),
+    el('div', { class: 'fld' }, radio('Không rủi ro'), radio('Có rủi ro')),
+    coRR ? el('div', { class: 'fld' },
+      el('label', {}, 'Chi tiết đánh giá dấu hiệu rủi ro ', el('span', { class: 'req' }, '*')),
       el('textarea', {
-        disabled: !nhapCBBH,
-        value: hs.dongLD.filter(d => d.danhGiaRuiRo).map(d => `${d.maLD}: ${d.danhGiaRuiRo}`).join('\n'),
-        onchange: e => { if (hs.dongLD[0]) hs.dongLD[0].danhGiaRuiRo = e.target.value; Store.luu(); },
+        disabled: !nhap, value: o.chiTiet || '',
+        placeholder: nhap ? 'Mô tả cụ thể dấu hiệu rủi ro phát hiện được...' : '',
+        onchange: e => { o.chiTiet = e.target.value; Store.luu(); },
       })) : null);
 }
 
-/* Ô tích rủi ro của CBBH — thay cho các trường "Đánh giá rủi ro / không rủi
- * ro" rải rác ở từng khối. Mặc định KHÔNG tích; tích thì bắt buộc nhập ý
- * kiến, và hệ thống chặn chuyển bước nếu để trống.                         */
-function khoiTichRuiRo(hs, nhapCBBH) {
-  const tick = !!hs.tichCoRuiRo;
-  return el('div', { class: 'card', style: 'margin-top:16px' },
-    el('h3', {}, 'Đánh giá rủi ro của Cán bộ bán hàng'),
-    el('div', { class: 'body' },
-      el('label', {
-        style: 'display:flex;gap:10px;align-items:flex-start;font-size:13.5px;'
-             + (nhapCBBH ? 'cursor:pointer' : 'cursor:default'),
-      },
-        el('input', {
-          type: 'checkbox', style: 'width:auto;margin:3px 0 0', disabled: !nhapCBBH, checked: tick,
-          onchange: e => {
-            hs.tichCoRuiRo = e.target.checked;
-            if (!e.target.checked) hs.ykienRuiRo = '';
-            Store.luu(); ve();
-          },
-        }),
-        el('span', {},
-          el('b', {}, 'Có rủi ro / dấu hiệu cần lưu ý'),
-          el('div', { class: 'note' },
-            'Mặc định không tích. Tích ô này khi phát hiện dấu hiệu rủi ro cần lưu ý '
-            + 'ngoài các kết quả kiểm tra đã nhập ở trên.'))),
-
-      tick ? el('div', { class: 'fld', style: 'margin:13px 0 0' },
-        el('label', {}, 'Ý kiến đánh giá rủi ro ', el('span', { class: 'req' }, '*')),
-        el('textarea', {
-          disabled: !nhapCBBH, value: hs.ykienRuiRo || '',
-          placeholder: nhapCBBH ? 'Mô tả cụ thể dấu hiệu rủi ro phát hiện được...' : '',
-          onchange: e => { hs.ykienRuiRo = e.target.value; Store.luu(); },
-        }),
-        el('div', { class: 'note' },
-          'Bắt buộc nhập khi đã tích ô rủi ro — hệ thống chặn chuyển bước nếu để trống.')) : null));
-}
 
 function subTabDieuKien(hs, u, nhapTNTD, nhapCBBH, cheDo) {
   const rows = hs.dieuKien.map((d, i) => el('tr', {},
@@ -487,61 +464,72 @@ function subTabDieuKien(hs, u, nhapTNTD, nhapCBBH, cheDo) {
       ? el('input', { type: 'number', min: 0, style: 'width:78px', value: d.thoiGianYeuCau,
           onchange: e => { d.thoiGianYeuCau = +e.target.value; Store.luu(); } })
       : d.thoiGianYeuCau + ' ngày'),
-    el('td', {}, nhapTNTD
-      ? el('select', { onchange: e => { d.tanSuat = e.target.value; Store.luu(); } },
-          ...['Thời điểm', 'Định kỳ'].map(v => el('option', { value: v, selected: d.tanSuat === v }, v)))
-      : d.tanSuat),
-    el('td', { style: 'min-width:190px' }, nhapTNTD
-      ? el('textarea', { style: 'min-height:54px', value: d.cheTai || '',
-          onchange: e => { d.cheTai = e.target.value; Store.luu(); } })
-      : el('div', { style: 'font-size:12.5px' }, d.cheTai || '—')),
-    el('td', {}, nhapCBBH
-      ? el('select', { onchange: e => { d.ketQua = e.target.value || null; Store.luu(); ve(); } },
-          el('option', { value: '' }, '— chọn —'),
-          ...DANH_MUC.ketQuaDieuKien.map(v => el('option', { value: v, selected: d.ketQua === v }, v)))
-      : (d.ketQua ? el('span', { class: 'chip ' + (d.ketQua === 'Vi phạm' ? 'err' : d.ketQua === 'Tuân thủ' ? 'ok' : 'mute') }, d.ketQua) : '—')),
-    el('td', {}, dinhDangNgay(d.ngayKTGanNhat))));
+    el('td', {}, el('select', {
+      disabled: !nhapCBBH,
+      onchange: e => { d.ketQua = e.target.value || null; Store.luu(); ve(); },
+    }, el('option', { value: '' }, '— chọn —'),
+       ...DANH_MUC.ketQuaDieuKien.map(v => el('option', { value: v, selected: d.ketQua === v }, v)))),
+    el('td', {}, dinhDangNgay(d.ngayKTGanNhat)),
+    el('td', {}, dinhDangNgay(d.ngayKTTiepTheo))));
 
-  const khoi = (tieuDe, o, key) => el('div', {},
+  /* Khối kiểm tra định kỳ (HĐKD / TSBĐ) theo đúng bộ trường của tài liệu BA */
+  const khoiKiemTra = (tieuDe, o, khoaDG) => el('div', {},
     el('div', { class: 'sec' }, tieuDe),
     el('div', { class: 'grid3' },
       el('div', { class: 'fld' }, el('label', {}, 'Kết quả ', el('span', { class: 'req' }, '*')),
-        nhapCBBH
-          ? el('select', { onchange: e => { o.ketQua = e.target.value || null; Store.luu(); ve(); } },
-              el('option', { value: '' }, '— chọn —'),
-              ...DANH_MUC.ketQuaHDKD.map(v => el('option', { value: v, selected: o.ketQua === v }, v)))
-          : el('div', { class: 'ro' }, o.ketQua || '—')),
+        el('select', { disabled: !nhapCBBH,
+          onchange: e => { o.ketQua = e.target.value || null; Store.luu(); ve(); } },
+          el('option', { value: '' }, '— chọn —'),
+          ...DANH_MUC.ketQuaHDKD.map(v => el('option', { value: v, selected: o.ketQua === v }, v)))),
       el('div', { class: 'fld' }, el('label', {}, 'Tài liệu cung cấp'),
-        nhapCBBH
-          ? el('select', { onchange: e => { o.taiLieu = e.target.value || null; Store.luu(); ve(); } },
-              el('option', { value: '' }, '— chọn —'),
-              ...DANH_MUC.taiLieuHopLe.map(v => el('option', { value: v, selected: o.taiLieu === v }, v)))
-          : el('div', { class: 'ro' }, o.taiLieu || '—')),
+        el('select', { disabled: !nhapCBBH,
+          onchange: e => { o.taiLieu = e.target.value || null; Store.luu(); ve(); } },
+          el('option', { value: '' }, '— chọn —'),
+          ...DANH_MUC.taiLieuHopLe.map(v => el('option', { value: v, selected: o.taiLieu === v }, v)))),
       el('div', { class: 'fld' }, el('label', {}, 'Ngày thực hiện kiểm tra'),
-        nhapCBBH
-          ? el('input', { type: 'date', value: o.ngayKT || '', max: Store.state.ngayHeThong,
-              onchange: e => { o.ngayKT = e.target.value; Store.luu(); } })
-          : el('div', { class: 'ro' }, dinhDangNgay(o.ngayKT)))),
-    o.ketQua === 'Có dấu hiệu rủi ro'
-      ? el('div', { class: 'fld' }, el('label', {}, 'Chi tiết đánh giá dấu hiệu rủi ro ', el('span', { class: 'req' }, '*')),
-          el('textarea', { disabled: !nhapCBBH, value: o.chiTiet || '',
-            onchange: e => { o.chiTiet = e.target.value; Store.luu(); } }))
-      : null);
+        el('input', { type: 'date', value: o.ngayKT || '', max: Store.state.ngayHeThong,
+          disabled: !nhapCBBH,
+          onchange: e => { o.ngayKT = e.target.value; Store.luu(); } })),
+      el('div', { class: 'fld' }, el('label', {}, 'Thời gian kiểm tra gần nhất'),
+        el('div', { class: 'ro' }, dinhDangNgay(o.ngayKTGanNhat || o.ngayKT))),
+      el('div', { class: 'fld' }, el('label', {}, 'Thời gian kiểm tra tiếp theo'),
+        el('div', { class: 'ro' }, dinhDangNgay(o.ngayKTTiepTheo)))),
+    khoiDanhGia(hs, khoaDG, 'Đánh giá dấu hiệu rủi ro', nhapCBBH));
 
   const cheDoKP = cheDoKhoiKhacPhuc(hs, u);
+  if (!hs.cheTaiApDung) hs.cheTaiApDung = { noiDung: '', ngayBatDau: '', trangThai: 'Đang áp dụng' };
+  const ct = hs.cheTaiApDung;
 
   return el('div', {},
+    el('div', { class: 'sec' }, 'Tuân thủ điều kiện phê duyệt/sản phẩm'),
     el('div', { style: 'overflow-x:auto' },
       el('table', {}, el('thead', {}, el('tr', {},
-        ...['STT', 'Nội dung điều kiện', 'Thời gian yêu cầu', 'Tần suất', 'Chế tài nếu vi phạm',
-            'Kết quả KT/ĐG', 'KT gần nhất'].map(h => el('th', {}, h)))),
+        ...['STT', 'Nội dung điều kiện', 'Thời gian yêu cầu (ngày)',
+            'Kết quả KT/ĐG', 'KT gần nhất', 'KT tiếp theo'].map(h => el('th', {}, h)))),
         el('tbody', {}, ...rows))),
     nhapTNTD ? el('button', {
       class: 'btn sm', style: 'margin-top:9px',
-      onclick: () => { hs.dieuKien.push({ noiDung: '', thoiGianYeuCau: 30, cheTai: '', tanSuat: 'Thời điểm', ketQua: null, ngayKTGanNhat: null, taiLieu: [] }); Store.luu(); ve(); },
+      onclick: () => { hs.dieuKien.push({ noiDung: '', thoiGianYeuCau: 30, ketQua: null, ngayKTGanNhat: null, ngayKTTiepTheo: null, taiLieu: [] }); Store.luu(); ve(); },
     }, '+ Thêm điều kiện') : null,
-    khoi('Kiểm tra tình hình hoạt động kinh doanh', hs.hdkd),
-    khoi('Kiểm tra tài sản bảo đảm', hs.tsbd),
+
+    khoiDanhGia(hs, 'dgTuanThu', 'Đánh giá rủi ro tuân thủ', nhapCBBH),
+
+    /* Chế tài áp dụng — khối riêng theo tài liệu BA */
+    el('div', { class: 'sec' }, 'Chế tài áp dụng'),
+    el('div', { class: 'fld' }, el('label', {}, 'Chế tài áp dụng'),
+      el('textarea', { disabled: !nhapCBBH, value: ct.noiDung || '',
+        onchange: e => { ct.noiDung = e.target.value; Store.luu(); } })),
+    el('div', { class: 'grid2' },
+      el('div', { class: 'fld' }, el('label', {}, 'Ngày bắt đầu áp dụng chế tài'),
+        el('input', { type: 'date', value: ct.ngayBatDau || '', disabled: !nhapCBBH,
+          onchange: e => { ct.ngayBatDau = e.target.value; Store.luu(); } })),
+      el('div', { class: 'fld' }, el('label', {}, 'Trạng thái chế tài'),
+        el('select', { disabled: !nhapCBBH,
+          onchange: e => { ct.trangThai = e.target.value; Store.luu(); } },
+          ...DANH_MUC.trangThaiCheTai.map(v => el('option', { value: v, selected: ct.trangThai === v }, v))))),
+
+    khoiKiemTra('Kiểm tra tình hình hoạt động kinh doanh', hs.hdkd, 'dgHDKD'),
+    khoiKiemTra('Kiểm tra tài sản bảo đảm', hs.tsbd, 'dgTSBD'),
     cheDoKP !== 'an' ? khoiKhacPhuc(hs, cheDoKP) : null);
 }
 
@@ -695,16 +683,14 @@ function tabTaiLieu(hs, u, cheDo) {
 /* -------------------------------------------------- M-02 · tab Lịch sử */
 function tabLichSu(hs) {
   return el('table', {}, el('thead', {}, el('tr', {},
-    ...['STT', 'Bước xử lý', 'Người xử lý', 'Bắt đầu', 'Kết thúc', 'Hành động', 'Kết quả', 'Lý do'].map(h => el('th', {}, h)))),
+    ...['STT', 'Bước xử lý', 'Người xử lý', 'Bắt đầu', 'Kết thúc', 'Kết quả'].map(h => el('th', {}, h)))),
     el('tbody', {}, ...hs.lichSu.map((l, i) => el('tr', {},
       el('td', {}, i + 1),
       el('td', {}, l.buoc === '—' ? '—' : `${l.buoc} · ${STEPS[l.buoc]?.ten || ''}`),
       el('td', {}, l.nguoi, el('div', { class: 'note' }, l.vaiTro)),
       el('td', {}, l.batDau),
       el('td', {}, l.ketThuc || '—'),
-      el('td', {}, l.hanhDong),
-      el('td', {}, l.ketQua),
-      el('td', { style: 'max-width:240px;font-size:12.5px' }, l.lyDo || '—')))));
+      el('td', {}, l.ketQua)))));
 }
 
 /* ----------------------------------------------- M-02 · tab Luồng xử lý */
@@ -809,13 +795,15 @@ function thucHienChuyenBuoc(hs, t) {
         [el('button', { class: 'btn pri', onclick: dongModal }, 'Đã hiểu')]);
       return;
     }
-    /* Đã tích ô rủi ro thì bắt buộc có ý kiến đánh giá */
-    if (hs.tichCoRuiRo && !String(hs.ykienRuiRo || '').trim()) {
-      moModal('Thiếu ý kiến đánh giá rủi ro',
+    /* Chọn "Có rủi ro" ở khối nào thì khối đó bắt buộc có chi tiết đánh giá */
+    const thieuCT = KHOI_DANH_GIA
+      .filter(([k]) => hs[k] && hs[k].danhGia === 'Có rủi ro' && !String(hs[k].chiTiet || '').trim())
+      .map(([, ten]) => ten);
+    if (thieuCT.length) {
+      moModal('Thiếu chi tiết đánh giá dấu hiệu rủi ro',
         el('div', { class: 'banner err' }, el('div', {},
-          'Hồ sơ đã được tích “Có rủi ro / dấu hiệu cần lưu ý” nhưng chưa nhập '
-          + 'Ý kiến đánh giá rủi ro. Nhập nội dung tại khối Đánh giá rủi ro của '
-          + 'Cán bộ bán hàng trước khi trình phê duyệt.')),
+          'Các khối sau đã chọn “Có rủi ro” nhưng chưa nhập Chi tiết đánh giá '
+          + 'dấu hiệu rủi ro: ' + thieuCT.join(' · '))),
         [el('button', { class: 'btn pri', onclick: dongModal }, 'Đã hiểu')]);
       return;
     }

@@ -55,18 +55,26 @@ function chuoiBuoc(hs) {
  * GĐ/PGĐ phòng vẫn phê duyệt kết thúc được.
  *
  * → Điểm này cần cập nhật lại BR-506 trong URD trước khi chuyển sang FSD. */
+/* Bốn khối đánh giá do CBBH tự chọn thủ công (radio, mặc định Không rủi ro).
+ * Hệ thống KHÔNG tự suy ra rủi ro từ Kết quả kiểm tra — chỉ tổng hợp lại
+ * đúng những gì cán bộ đã chọn.                                           */
+const KHOI_DANH_GIA = [
+  ['dgSDV',     'Kiểm tra mục đích sử dụng vốn'],
+  ['dgTuanThu', 'Tuân thủ điều kiện phê duyệt/sản phẩm'],
+  ['dgHDKD',    'Kiểm tra tình hình hoạt động kinh doanh'],
+  ['dgTSBD',    'Kiểm tra tài sản bảo đảm'],
+];
+
 function tinhCoRuiRo(hs) {
   const lyDo = [];
-  if (hs.tichCoRuiRo) {
-    lyDo.push('CBBH tích ô "Có rủi ro / dấu hiệu cần lưu ý"'
-      + (hs.ykienRuiRo ? ' — ' + hs.ykienRuiRo : ''));
-  }
+  KHOI_DANH_GIA.forEach(([khoa, ten]) => {
+    const o = hs[khoa];
+    if (o && o.danhGia === 'Có rủi ro') {
+      lyDo.push(ten + (o.chiTiet ? ' — ' + o.chiTiet : ''));
+    }
+  });
   return { coRuiRo: lyDo.length > 0, lyDo };
 }
-
-/* Hệ thống KHÔNG tự đánh giá rủi ro dưới bất kỳ hình thức nào: không tự bật
- * cờ, không gợi ý, không cảnh báo dựa trên kết quả kiểm tra. Toàn bộ việc
- * đánh giá do cán bộ tự tích thủ công (chốt nghiệp vụ 23/09/2026).        */
 
 /* --------------------------------------- MA TRẬN CHUYỂN BƯỚC — URD v1.1 */
 /* Mỗi phần tử: bước nguồn, nhãn nút, vai trò, điều kiện, bước đích, kiểu.
@@ -308,14 +316,6 @@ const MENU = [
       moTa: 'Theo dõi và đôn đốc hồ sơ quá hạn kiểm tra, quá hạn khắc phục' },
     { ma: 'M-09', ten: 'Báo cáo theo chi nhánh', vaiTro: ['R4','R5','R6','R7','R8','R10'],
       moTa: 'Chỉ tiêu KSSV theo từng chi nhánh phục vụ đánh giá chất lượng' },
-  ]},
-  { nhom: 'Tra cứu', items: [
-    { ma: 'M-05', ten: 'Tra cứu hồ sơ',         vaiTro: ['R1','R2','R3','R4','R5','R6','R7','R8','R10','R11'],
-      moTa: 'Tra cứu theo nhiều tiêu chí kết hợp, gồm cả hồ sơ đã hoàn thành' },
-    { ma: 'M-06', ten: 'Tra cứu khách hàng',    vaiTro: ['R2','R3','R4','R5','R6','R7','R10','R11'],
-      moTa: 'Toàn bộ lịch sử kiểm soát sau vay của một khách hàng theo CIF' },
-    { ma: 'M-07', ten: 'Tra cứu lịch sử xử lý', vaiTro: ['R3','R4','R5','R6','R7','R8','R10'],
-      moTa: 'Nhật ký xử lý theo người dùng, theo bước, theo khoảng thời gian' },
   ]},
   { nhom: 'Quản trị hệ thống', items: [
     { ma: 'M-04', ten: 'Phân quyền hệ thống',   vaiTro: ['R8','R10'],
